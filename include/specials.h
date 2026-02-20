@@ -133,7 +133,6 @@ void special_WG(struct tile **matrix, int x, int y)
     char input[10];
     printf("who would you like to change position with ? ");
     scanf("%s", input);
-    char temp[10];
     int xrecord, yrecord;
     int x_WG, y_WG;
     for (int i = 0; i < y + 2; i++)
@@ -163,6 +162,8 @@ void special_WG(struct tile **matrix, int x, int y)
 }
 void special_IL(struct tile **matrix, int x, int y, struct Escape *Gates)
 {
+    (void)x;
+    (void)y;
     int flag = 1;
     char input[10];
     int store;

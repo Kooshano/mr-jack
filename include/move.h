@@ -418,7 +418,6 @@ void move_player_SG(char name[], struct tile **matrix, int x, int y, int n, int 
     }
     int status = 0;
 
-    int flag = 1;
     struct change_place *head_change, *current_change;
     head_change = current_change = (struct change_place *)malloc(sizeof(struct change_place));
     current_change->next = NULL;

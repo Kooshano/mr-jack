@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <windows.h>
 
 #define ANSI_COLOR_GREEN "\x1B[32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
@@ -85,9 +84,11 @@ struct tile **LoadMap(FILE *base, int x, int y)
 }
 void DisplayMap(char *hexagonal, struct tile **map, int x, int y)
 {
+    (void)x;
+    (void)y;
     int char_count = 0;
     int type_count = 0;
-    for (int i = 0; i < strlen(hexagonal); i++)
+    for (size_t i = 0; i < strlen(hexagonal); i++)
     {
         if (hexagonal[i] == 'c' && hexagonal[i + 1] == 'h')
         {
@@ -164,10 +165,10 @@ struct Escape *Load_Escape(FILE *base)
     struct Escape *Gates = (struct Escape *)malloc(4 * sizeof(struct Escape));
     for (int i = 0; i < 4; i++)
     {
-        fscanf(base, "%s %d %s %s", &Gates[i].place, &Gates[i].mode, &Gates[i].gate1, &Gates[i].gate2);
+        fscanf(base, "%s %d %s %s", Gates[i].place, &Gates[i].mode, Gates[i].gate1, Gates[i].gate2);
     }
     return Gates;
-};
+}
 void Clear_Visibility(struct tile **matrix, int x, int y)
 {
     for (int i = 0; i < y + 2; i++)
@@ -237,4 +238,5 @@ int if_visible(struct tile **matrix, int x, int y, char mrjack[10])
             }
         }
     }
+    return 0;
 }

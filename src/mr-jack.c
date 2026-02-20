@@ -1,7 +1,28 @@
 #include "characters.h"
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 int rounds = 0;
+#define BASE_FILE "data/base.txt"
+#define MAP_TEMPLATE_FILE "data/map.txt"
+#define SAVE_FILE "state/save.bin"
+#define REPLAY_FILE "state/replay.txt"
+
+void sleep_ms(int milliseconds)
+{
+#ifdef _WIN32
+    Sleep(milliseconds);
+#else
+    usleep(milliseconds * 1000);
+#endif
+}
 void Replay_save(int x, int y, struct tile **matrix, char mrjack[], struct Escape *Gates, FILE *save)
 {
+    (void)mrjack;
+    (void)Gates;
 
     for (int i = 0; i < y + 2; i++)
     {
@@ -39,10 +60,14 @@ void Replay_play(FILE *base, int x, int y, struct tile **matrix)
         }
     }
 }
-void Load(struct tile **matrix, int *xread, int *yread, char mrjack[], struct Escape *Gates)
+int Load(struct tile **matrix, int *xread, int *yread, char mrjack[], struct Escape *Gates)
 {
     FILE *save;
-    save = fopen("save.txt", "a+b");
+    save = fopen(SAVE_FILE, "rb");
+    if (save == NULL)
+    {
+        return 0;
+    }
     fread(xread, sizeof(int), 1, save);
     fread(yread, sizeof(int), 1, save);
     int x = *xread;
@@ -76,22 +101,23 @@ void Load(struct tile **matrix, int *xread, int *yread, char mrjack[], struct Es
         fread(&Gates[i].gate1, sizeof(char), 4, save);
         fread(&Gates[i].gate2, sizeof(char), 4, save);
     }
-    fwrite(JW_direction, sizeof(char), 3, save);
+    fread(JW_direction, sizeof(char), 3, save);
     for (int i = 0; i < 8; i++)
     {
         fread(&inocent[i], sizeof(int), 1, save);
     }
     for (int i = 0; i < 8; i++)
     {
-        fwrite(&CARDS_for_SH[i], sizeof(char), 3, save);
+        fread(&CARDS_for_SH[i], sizeof(char), 3, save);
     }
     fclose(save);
+    return 1;
 }
 
 void save(int x, int y, struct tile **matrix, char mrjack[], struct Escape *Gates)
 {
     FILE *save;
-    save = fopen("save.txt", "w+b");
+    save = fopen(SAVE_FILE, "w+b");
     fwrite(&x, sizeof(int), 1, save);
     fwrite(&y, sizeof(int), 1, save);
 
@@ -266,7 +292,7 @@ struct seperate_Deck
     struct Deck *head1;
     struct Deck *head2;
 };
-struct seperate_Deck *card_generator()
+struct seperate_Deck *card_generator(void)
 {
     struct seperate_Deck *Deck;
     Deck = (struct seperate_Deck *)malloc(sizeof(struct seperate_Deck));
@@ -305,15 +331,20 @@ struct seperate_Deck *card_generator()
     head->next = NULL;
     return Deck;
 }
-int main()
+int main(void)
 {
     int turn = 0; //0 for detective and 1 for mr-jack
     FILE *map;
     FILE *base;
     FILE *replay;
-    replay = fopen("replay.txt", "w+");
-    map = fopen("map.txt", "a+");
-    base = fopen("base.txt", "a+");
+    replay = fopen(REPLAY_FILE, "w+");
+    map = fopen(MAP_TEMPLATE_FILE, "r");
+    base = fopen(BASE_FILE, "r");
+    if (replay == NULL || map == NULL || base == NULL)
+    {
+        printf("Failed to open required game files.\n");
+        return 1;
+    }
     int x, y;
     fscanf(base, "%d %d\n", &x, &y);
     struct tile **matrix = LoadMap(base, x, y);
@@ -334,7 +365,10 @@ int main()
     scanf("%s", choice);
     if (strcmp(choice, "Load") == 0)
     {
-        Load(matrix, &x, &y, mrjack, Gates);
+        if (!Load(matrix, &x, &y, mrjack, Gates))
+        {
+            printf("No save file found. Starting a new game.\n");
+        }
     }
     printf("Mr Jack is : %s\n", mrjack);
 
@@ -540,7 +574,7 @@ int main()
     Replay_save(x, y, matrix, mrjack, Gates, replay);
     fclose(replay);
     rounds++;
-    replay = fopen("replay.txt", "a+");
+    replay = fopen(REPLAY_FILE, "a+");
     printf("Do you want Replay? 1 for yes and 0 for no : ");
     int rep;
     scanf("%d", &rep);
@@ -555,7 +589,7 @@ int main()
         {
             Replay_play(replay, x, y, matrix);
             DisplayMap(hexagonal, matrix, x, y);
-            Sleep(1000);
+            sleep_ms(1000);
         }
     }
 
