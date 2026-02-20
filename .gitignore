@@ -1,0 +1,14 @@
+# Build artifacts
+*.exe
+*.out
+*.o
+*.obj
+
+# Runtime state files
+save.txt
+replay.txt
+
+# OS/editor files
+.DS_Store
+.vscode/*
+!.vscode/settings.json
